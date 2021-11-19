@@ -1,0 +1,17 @@
+{
+  "name": "schedule-gitlab-task",
+  "version": "1.0.0",
+  "description": "weixin robot schedule gitlab task",
+  "author": "shaoyongkai",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "moment": "^2.29.1",
+    "node-fetch": "^2.6.0",
+    "node-schedule": "^2.0.0"
+  },
+  "devDependencies": {}
+}

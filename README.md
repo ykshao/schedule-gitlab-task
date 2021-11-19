@@ -19,6 +19,7 @@
 - 开发模式启动    
 ```
     pm2 start app.js --name=schedule-gitlab-task --watch
+    pm2 start juejin.js --name=schedule-juejin-task --watch
 ``` 
 
 ------------------
