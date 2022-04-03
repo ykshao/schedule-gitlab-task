@@ -6,33 +6,34 @@ var moment = require('moment');
 
 // 箭头函数
 const getProjects = async (token) => {
-  const url = `https://gitlab.vhall.com/api/v3/projects?private_token=${token}`;
+  const url = `https://gitlabnew.vhall.com/api/v4/projects?private_token=${token}&per_page=100`;
   const response = await fetch(url);
   return await response.json();
 }
 
 const getBranches = async (projectId, token) => {
-  const url = encodeURI(`https://gitlab.vhall.com/api/v3/projects/${projectId}/repository/branches?private_token=${token}`);
+  const url = encodeURI(`https://gitlabnew.vhall.com/api/v4/projects/${projectId}/repository/branches?private_token=${token}`);
   const response = await fetch(url);
   return await response.json();
 }
 
 const getCommits = async (projectId, token, name) => {
-  const url = encodeURI(`https://gitlab.vhall.com/api/v3/projects/${projectId}/repository/commits?ref_name=${name}&private_token=${token}`);
+  const url = encodeURI(`https://gitlabnew.vhall.com/api/v4/projects/${projectId}/repository/commits?ref_name=${name}&private_token=${token}`);
   const response = await fetch(url);
   return await response.json();
 
 }
 
 const getCodeTotals = async (projectId, token, commitId) => {
-  const url = encodeURI(`https://gitlab.vhall.com/api/v3/projects/${projectId}/repository/commits/${commitId}?private_token=${token}`);
+  const url = encodeURI(`https://gitlabnew.vhall.com/api/v4/projects/${projectId}/repository/commits/${commitId}?private_token=${token}`);
   const response = await fetch(url);
   return await response.json();
 }
 
 // 在全局作用域下使用async关键字是非法的 需要声明一个匿名的函数表达式
-const token = 'cxZcuL-tE66yu3t3saFX';
+const token = 'PKJ8A191hyZZUQX7szgk';
 const commitsByUserStats = {};
+const apiUrl = '';
 
 
 
@@ -44,7 +45,7 @@ async function requestfun() {
 
   const column = await getProjects(token);
   const projects = column.filter((project) => {
-    return project.namespace.name == "web" || project.namespace.name == "marketing"
+    return project.namespace.name == "FE"
   });
 
   try {
@@ -71,7 +72,7 @@ async function requestfun() {
           // console.log("commitsByTime----->", commitsByTime);
           if (commitsByTime.length > 0) {
 
-            // for(const commit of commits) {
+            // for (const commit of commits) {
             //   const codeInfo = await getCodeTotals(project.id, token, commit.id);
             //   console.log(`${codeInfo}`)
             // }
@@ -79,12 +80,26 @@ async function requestfun() {
             if (commitsCount > 0) {
               for (let i = 0; i < commitsCount; i++) {
                 let commit = commitsByTime[i];
+                let codeInfo = await getCodeTotals(project.id, token, commit.id);
+
                 let author_name = commit.author_name;
                 // console.log("commit------>", commit);
                 if (commitsByUserStats[author_name]) {
-                  commitsByUserStats[author_name]++;
+                  //代码量统计
+                  commitsByUserStats[author_name].additions += codeInfo.stats.additions;
+                  commitsByUserStats[author_name].deletions += codeInfo.stats.deletions;
+                  commitsByUserStats[author_name].total += codeInfo.stats.total;
+
+                  //提交次数
+                  commitsByUserStats[author_name].commitCount++;
                 } else {
-                  commitsByUserStats[author_name] = 1;
+                  commitsByUserStats[author_name] = {
+                    author_name: author_name,
+                    additions: 0,
+                    deletions: 0,
+                    total: 0,
+                    commitCount: 1
+                  }
                 }
               }
             }
@@ -100,10 +115,22 @@ async function requestfun() {
   }
 
   //构建内容
-  let content = "# 昨日SAAS前端团队代码提交次数统计\n";
+  let sortCommitsByUserStats = [];
+  let content = "#昨日SAAS前端团队代码提交次数+代码量统计\n";
   Object.keys(commitsByUserStats).forEach((key) => {
+    sortCommitsByUserStats.push(commitsByUserStats[key]);
+  });
+
+  sortCommitsByUserStats.sort((pre, next) => {
+    return next.commitCount - pre.commitCount;
+  })
+
+  sortCommitsByUserStats.forEach((item) => {
     // 这里 obj[key] 便是对象的每一个的值
-    content += "> **" + key + "**: <font color=\"info\">**" + commitsByUserStats[key] + "**次</font>\n";
+    content += "> **" + item.author_name + "**: <font color=\"info\"> 共commit提交 **" + item.commitCount + "**次</font>\n";
+    content += "> 新增代码行数: <font color=\"comment\">" + item.additions + "</font>\n";
+    content += "> 删除代码行数: <font color=\"comment\">" + item.deletions + "</font>\n";
+    content += "> 总共变更代码行数: <font color=\"comment\">" + item.total + "</font>\n";
   });
 
   let resData = {
@@ -116,7 +143,7 @@ async function requestfun() {
   // console.log(content)
 
   // url 为企业机器人的webhook
-  const response = await fetch('', {
+  const response = await fetch(apiUrl, {
     method: 'post',
     body: JSON.stringify(resData),
     headers: { 'Content-Type': 'application/json' }
@@ -133,3 +160,6 @@ const scheduleCronstyle = () => {
   });
 }
 scheduleCronstyle();
+
+// test
+// requestfun();
