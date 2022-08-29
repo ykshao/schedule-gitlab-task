@@ -31,9 +31,9 @@ const getCodeTotals = async (projectId, token, commitId) => {
 }
 
 // 在全局作用域下使用async关键字是非法的 需要声明一个匿名的函数表达式
-const token = ''; //gitlab 平台token
+const token = '';
 const commitsByUserStats = {};
-const apiUrl = ''; //机器人api接口
+const apiUrl = '';
 
 
 //resData对象各属性请参考官方文档
@@ -63,8 +63,8 @@ async function requestfun() {
         if (Array.isArray(commits)) {
           const commitsByTime = commits.filter(item => {
             let created_at_time = moment(item.created_at).format('YYYY-MM-DD HH:mm:ss');
-            let pre_day_start = moment().subtract(1, 'days').format('YYYY-MM-DD 00:00:00');
-            let pre_day_end = moment().subtract(1, 'days').format('YYYY-MM-DD 23:59:59');
+            let pre_day_start = moment().subtract(3, 'days').format('YYYY-MM-DD 00:00:00');
+            let pre_day_end = moment().subtract(3, 'days').format('YYYY-MM-DD 23:59:59');
             let isBetweenTime = moment(created_at_time).isBetween(pre_day_start, pre_day_end);
             return isBetweenTime
           });
@@ -115,7 +115,7 @@ async function requestfun() {
 
   //构建内容
   let sortCommitsByUserStats = [];
-  let content = "# 昨日SAAS前端团队代码提交次数+代码量统计\n";
+  let content = "# 上周五4月8日SAAS前端团队代码提交次数+代码量统计\n";
   Object.keys(commitsByUserStats).forEach((key) => {
     sortCommitsByUserStats.push(commitsByUserStats[key]);
   });
@@ -139,7 +139,7 @@ async function requestfun() {
     }
   };
 
-  // console.log(content)
+  console.log(content)
 
   // url 为企业机器人的webhook
   const response = await fetch(apiUrl, {
@@ -152,13 +152,13 @@ async function requestfun() {
 }
 
 // 定时任务
-const scheduleCronstyle = () => {
-  //每分钟的第30秒定时执行一次:
-  schedule.scheduleJob('0 0 10 * * 2-6', () => {
-    requestfun();
-  });
-}
-scheduleCronstyle();
+// const scheduleCronstyle = () => {
+//   //每分钟的第30秒定时执行一次:
+//   schedule.scheduleJob('0 0 10 * * 2-6', () => {
+//     requestfun();
+//   });
+// }
+// scheduleCronstyle();
 
 // test
-// requestfun();
+requestfun();
